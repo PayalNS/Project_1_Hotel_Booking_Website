@@ -1,0 +1,93 @@
+body{
+    width: 100%;
+    height: 100%;
+    margin: 0 auto;
+    background-color: #e0e0e0;
+    font-family: 'Ubuntu', sans-serif;
+}
+header{
+    background-color: rosybrown;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    position: fixed;
+}
+header a{
+    text-decoration: none;
+    color: black;
+    padding-right: 1%;
+}
+footer{
+    background-color: rosybrown;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    position: fixed;
+    bottom: 0%;
+}
+#contact{
+    position: absolute;
+    top: 30%;
+    left: 1%;
+}
+#mid{
+    position: absolute;
+    top: 30%;
+    right: 1%;
+}
+footer a{
+    text-decoration: none;
+    color: black;
+}
+#copy_right{
+    margin-top: 20px;
+    margin-bottom: 0;
+    font-size: 10px;
+}
+#first_hotel{
+    margin: 3%;
+    background-color: rgb(132,136,139);
+    width: 40%;
+    float: left;
+    padding: 2%;
+}
+#second_hotel{
+    margin: 3%;
+    background-color: rgb(132,136,139);
+    width: 40%;
+    float: right;
+    padding: 2%;
+}
+#third_hotel{
+    margin: 3%;
+    background-color: rgb(132,136,139);
+    width: 40%;
+    margin-bottom: 8%;
+    float: left;
+    padding: 2%;
+}
+.list_view{
+    text-decoration: none;
+    color: black;
+    justify-content: center;
+    padding-left: 4%;
+}
+.map_view{
+    text-decoration: none;
+    color: black;
+    padding-left: 4%;
+}
+.view{
+    display: flex;
+    justify-content: center;
+    padding-top: 2%;
+}
+#map_view{
+    display: none;
+}
+section div a{
+    text-decoration: none;
+    color: black;
+}
