@@ -1,0 +1,27 @@
+body{
+    width: 100%;
+    height: 100%;
+    margin: 0 auto;
+    background-color: #e0e0e0;
+}
+header{
+    background-color: rosybrown;
+}
+footer{
+    background-color: rosybrown;
+}
+#first_hotel{
+    margin: 2%;
+    background-color: rgb(132,136,139);
+    width: 40%;
+}
+#second_hotel{
+    margin: 2%;
+    background-color: rgb(132,136,139);
+    width: 40%;
+}
+#third_hotel{
+    margin: 2%;
+    background-color: rgb(132,136,139);
+    width: 40%;
+}
