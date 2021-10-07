@@ -59,3 +59,43 @@
   font-size: 55px;
   color: black;
 }
+
+.carousel-control-next,
+.carousel-control-prev {
+  z-index: 0;
+}
+.carousel-image {
+  max-height: 370px;
+}
+
+@media screen and (max-width: 576px) {
+
+  #slideshow-container {
+      margin-left: 0%;
+      max-width: 100%;
+      border-right: 1px solid black;
+  }
+
+  #booking-form {
+      width: 100%;
+  }
+
+  #detail-container {
+      margin-top: 20%;
+      margin-bottom: 22%;
+  }
+
+  #slideshow-booking {
+      flex-direction: column;
+  }
+
+  .slider-image {
+      max-height: 250px;
+      width: 100%;
+  }
+}
+@media screen and (min-width: 576px) and (max-width: 768px) {
+  #detail-container {
+      margin-top: 10%;
+  }
+}
