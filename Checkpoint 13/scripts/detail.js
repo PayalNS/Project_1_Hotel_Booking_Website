@@ -1,101 +1,102 @@
-function submitData(){
-    window.location.href = "payment.html?adult="+adult+"&name="+name+"&fromDate="+fromDate+"&toDate="+toDate+"&price="+price;
+let urlParams = new URLSearchParams(window.location.search);
+const API_URL = "https://travel-advisor.p.rapidapi.com/";
+const travelAdvisorHost = "travel-advisor.p.rapidapi.com";
+const travelAdvisorKey = "305a6b78a0msh0813647c73287f8p19ef56jsn9b5d86d72ed4";
+const PRICE_PER_ROOM = 1000;
+
+/* Function to update the Price field in the booking form */
+let updatePrice = () => {
+    let adultElement = document.getElementById("adult");
+    let totalPriceElement = document.getElementById("price");
+    let toDateElement = document.getElementById("toDate");
+    let fromDateElement = document.getElementById("fromDate");
+
+    let toDateValue = new Date(toDateElement.value);
+    let fromDateValue = new Date(fromDateElement.value);
+
+    toDateElement.min = fromDateElement.value;
+
+    let days = (toDateValue - fromDateValue) / (24 * 60 * 60 * 1000);
+
+    if (adultElement.value && toDateElement.value && fromDateElement.value)
+        totalPriceElement.value = "Rs. " + parseInt(adultElement.value) * PRICE_PER_ROOM * days;
+    else
+        totalPriceElement.value = "Rs.0";
+
 }
 
-function calculateTotal() {
-    const fromDate = new Date(document.getElementById("fromDate").value);
-    const toDate = new Date(document.getElementById("toDate").value);
-    const diffTime = Math.abs(toDate - fromDate);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    console.log(diffDays + " days");
+/* This function will fetch the details of the hotel from the API */
+let fetchHotelDetailAPI = () => {
+    let xhr = new XMLHttpRequest();
 
+    xhr.addEventListener("readystatechange", function () {
+        if (this.readyState === this.DONE) {
 
-    var noOfAdults = document.getElementById("adult").value;
-    var price = document.getElementById("price");
+            let result = JSON.parse(this.responseText).data[0];
 
-    if (isNaN(diffDays)) {
-        price.value = "Rs. " + 0;
-    } else {
-        price.value = "Rs. " + noOfAdults * 1000 * diffDays;
-    }
+            document.getElementById("hotel-name").innerText = result.name;
+
+            let amenities = result.amenities;
+            let i = 0;
+            for (; i < Math.min(amenities.length, 10); i++) {
+                let liElement = document.createElement("li");
+                liElement.innerText = amenities[i].name;
+                document.getElementById("amenities").appendChild(liElement);
+            }
+
+            let descriptionPara = document.createElement("h6");
+            descriptionPara.innerHTML = result.description;
+            document.getElementById("description").appendChild(descriptionPara);
+
+            let rating = parseInt(result.rating);
+            for (i = 1; i <= rating; i++) {
+                document.getElementById(i).classList.add("checked");
+            }
+        }
+    });
+
+    xhr.open("GET", API_URL + "hotels/get-details?lang=en_US&location_id=" + urlParams.get('id'));
+    xhr.setRequestHeader("x-rapidapi-host", travelAdvisorHost);
+    xhr.setRequestHeader("x-rapidapi-key", travelAdvisorKey);
+
+    xhr.send();
 }
 
-const params = window.location.href.split('?');
-const location_id = params[1].split('=');
-console.log(location_id);
 
-const data = null;
+let fetchHotelPhotosAPI = () => {
+    let xhr = new XMLHttpRequest();
 
-const xhr = new XMLHttpRequest();
-xhr.withCredentials = false;
-
-xhr.addEventListener("readystatechange", function () {
-	if (this.readyState === this.DONE) {
-		console.log(JSON.parse(this.responseText));
-        JSON.parse(this.responseText).data.forEach(element => {
-
-            let hotelDescription = document.getElementById('hotel-description');
-            
-            let divElement = document.createElement("div");
-            divElement.id = 'rating';
-
-            // header element
-			let header2Element = document.createElement('h2');
-			header2Element.innerHTML= element.name;
-
-            // header element
-			let header5Element = document.createElement('h5');
-			header5Element.innerHTML= 'RATING';
-            header5Element.className = 'heading';
-
-            var ratings = parseInt(element.rating);
-            //span element
-			
-
-            for (i = 0; i <= ratings-1; i++) {
-                let spanElement = document.createElement('span');
-			    spanElement.className = 'fa fa-star checked';
-                divElement.appendChild(spanElement);
+    xhr.addEventListener("readystatechange", function () {
+        if (this.readyState === this.DONE) {
+            let carouselParentElement = document.getElementById("carousel-parent");
+            let result = JSON.parse(this.responseText).data;
+            let size = Math.min(result.length, 5);
+            let i = 0;
+            for (; i < size; i++) {
+                let div = document.createElement("div");
+                div.classList.add("carousel-item");
+                if (i == 0)
+                    div.classList.add("active");
+                let image = document.createElement("img");
+                image.setAttribute("class", "carousel-image");
+                image.classList.add("d-block");
+                image.classList.add("w-100");
+                image.src = result[i].images.large.url;
+                div.appendChild(image);
+                carouselParentElement.appendChild(div);
             }
+            disableLoader();
+        }
+    });
+    xhr.open("GET", API_URL + "photos/list?lang=en_US&location_id=" + urlParams.get('id'));
+    xhr.setRequestHeader("x-rapidapi-host", travelAdvisorHost);
+    xhr.setRequestHeader("x-rapidapi-key", travelAdvisorKey);
 
-            let headerAmenitiesElement = document.createElement('h5');
-			headerAmenitiesElement.innerHTML= 'AMENITIES';
-            headerAmenitiesElement.className = 'heading';
+    xhr.send();
+}
 
-            var amenities = element.amenities;
-            var ul = document.createElement('ul');
-            // ul.setAttribute('style', 'padding: 0; margin: 0;');
-            ul.setAttribute('id', 'theList');
-        
-            for (i = 0; i <= 8; i++) {
-                var li = document.createElement('li');
-                li.innerHTML = amenities[i].name;
-                // li.setAttribute('style', 'display: block;');
-                ul.appendChild(li);
-            }
+let idElement = document.getElementById("id");
+idElement.value = urlParams.get('id');
 
-            let headerDescriptionElement = document.createElement('h5');
-			headerDescriptionElement.innerHTML= 'Description';
-            headerDescriptionElement.className = 'heading';
-
-            let pDescriptionElement = document.createElement('p');
-			pDescriptionElement.innerHTML= element.description;
-            // headerDescriptionElement.className = 'heading';
-
-            hotelDescription.appendChild(header2Element);
-            hotelDescription.appendChild(header5Element);
-            hotelDescription.appendChild(divElement);
-            hotelDescription.appendChild(headerAmenitiesElement);
-            hotelDescription.appendChild(ul);
-            hotelDescription.appendChild(headerDescriptionElement);
-            hotelDescription.appendChild(pDescriptionElement);
-        });
-
-	}
-});
-
-xhr.open("GET", "https://travel-advisor.p.rapidapi.com/hotels/get-details?location_id="+location_id[1]);
-xhr.setRequestHeader("x-rapidapi-host", "travel-advisor.p.rapidapi.com");
-xhr.setRequestHeader("x-rapidapi-key", "305a6b78a0msh0813647c73287f8p19ef56jsn9b5d86d72ed4");
-
-xhr.send(data);
+fetchHotelDetailAPI();
+fetchHotelPhotosAPI();
