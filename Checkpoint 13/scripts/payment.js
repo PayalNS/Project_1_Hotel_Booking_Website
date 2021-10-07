@@ -1,42 +1,50 @@
-const params = window.location.href.split('?');
-const details = params[1].split('&');
-let toDate=null;
-let fromDate=null;
+let urlParams = new URLSearchParams(window.location.search);
+const API_URL = "https://travel-advisor.p.rapidapi.com/";
+const travelAdvisorHost = "travel-advisor.p.rapidapi.com";
+const travelAdvisorKey = "305a6b78a0msh0813647c73287f8p19ef56jsn9b5d86d72ed4";
 
+let fetchAPI = () => {
+    let xhr = new XMLHttpRequest();
 
-for(i=0; i<=details.length-1;i++) {
-    var val = details[i].split('=');
-    if (val[0] == 'adult') {
-        document.getElementById('adult').innerHTML = val[1];
-    } else if (val[0] == 'name') {
-        document.getElementById('name').innerHTML = val[1];
-    }
-    else if (val[0] == 'fromDate') {
-        document.getElementById('fromDate').innerHTML = val[1];
-        fromDate = val[1];
-    }
-    else if (val[0] == 'toDate') {
-        document.getElementById('toDate').innerHTML = val[1];
-        toDate = val[1];
-    }
-    else if (val[0] == 'price') {
-        document.getElementById('price').innerHTML = val[1];
-    }
-}
-const diffTime = Math.abs(toDate - fromDate);
-const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    xhr.addEventListener("readystatechange", function () {
+        if (this.readyState === this.DONE) {
+            let result = JSON.parse(this.responseText).data[0];
 
-document.getElementById('nights').innerHTML = diffDays;
+            let toDate = new Date(urlParams.get('toDate'));
+            let fromDate = new Date(urlParams.get('fromDate'));
+            let days = (toDate - fromDate) / (24 * 60 * 60 * 1000);
 
+            document.getElementById("hotel-image").src = result.photo.images.medium.url;
+            document.getElementById("hotel-name").innerText = result.name;
+            document.getElementById("ranking").innerHTML = "<b>" + result.ranking + "</b>";
+            document.getElementById("address").innerText = result.address;
+            document.getElementById("name").innerHTML = "<strong class='heading'>Name:</strong>&nbsp;" + urlParams.get('name');
+            document.getElementById("adult").innerHTML = "<strong class='heading'>Number of Adults:</strong>&nbsp;" + urlParams.get('adult');
+            document.getElementById("from-date").innerHTML = "<strong class='heading'>Check-in Date:</strong>&nbsp;" + urlParams.get('fromDate');
+            document.getElementById("to-date").innerHTML = "<strong class='heading'>Check-out Date:</strong>&nbsp;" + urlParams.get('toDate');
+            document.getElementById("tariff").innerHTML = "<strong class='heading'>Tariff Breakdown:</strong>&nbsp;Rs.1000 x " + urlParams.get('adult') + " Adults x " + days + " Nights";
+            document.getElementById("amount").innerHTML = "<strong class='heading'>Total Amount:</strong>&nbsp;" + urlParams.get('price');
+            disableLoader();
+        }
+    });
 
-function payNowEnable() {
-    document.getElementById("payNow").disabled = false;
-}
+    xhr.open("GET", API_URL + "hotels/get-details?lang=en_US&location_id=" + urlParams.get('id'));
+    xhr.setRequestHeader("x-rapidapi-host", travelAdvisorHost);
+    xhr.setRequestHeader("x-rapidapi-key", travelAdvisorKey);
 
-function payNowDisable() {
-    document.getElementById("payNow").disabled = true;
+    xhr.send();
 }
 
-function payNow(){
-    alert("Hi your booking is successfull !!")
+fetchAPI();
+
+if (!isLogin || isLogin === 'false') {
+    document.getElementById('pay-now-button').disabled = true;
+} else if (isLogin === 'true') {
+    document.getElementById('pay-now-button').disabled = false;
 }
+
+let payNow = e => {
+    e.preventDefault();
+    alert('Hi your booking is successfull!');
+};
+//project completed
