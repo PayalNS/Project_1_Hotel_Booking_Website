@@ -1,80 +1,83 @@
-const params = window.location.href.split('?');
-const city = params[1].split('=');
+let urlParams = new URLSearchParams(window.location.search);
+const API_URL = "https://travel-advisor.p.rapidapi.com/";
+const travelAdvisorHost = "travel-advisor.p.rapidapi.com";
+const travelAdvisorKey = "305a6b78a0msh0813647c73287f8p19ef56jsn9b5d86d72ed4";
 
-const data = null;
+//this function is used to initialize the google map and place the markers at the position of the hotel from the API
+let initMap = locations => {
+    let center = { lat: parseFloat(locations[0][1]), lng: parseFloat(locations[0][2]) };
+    let map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 10,
+        center: center
+    });
+    let infoWindow = new google.maps.InfoWindow({});
+    let marker, count;
+    for (count = 0; count < locations.length; count++) {
+        marker = new google.maps.Marker({
+            position: new google.maps.LatLng(locations[count][1], locations[count][2]),
+            map: map,
+            title: locations[count][0]
+        });
+        google.maps.event.addListener(marker, 'click', ((marker, count) => {
+            return function () {
+                infoWindow.setContent(locations[count][0]);
+                infoWindow.open(map, marker);
+            }
+        })(marker, count));
+    }
+}
 
-const xhr = new XMLHttpRequest();
-xhr.withCredentials = false;
+let initList = hotelList => {
+    let hotelListElement = document.getElementById('hotel-list');
+    hotelList.forEach(hotel => {
+        let hotelLinkElement = document.createElement("a");
+        hotelLinkElement.setAttribute("href", `detail.html?id=` + hotel.result_object.location_id);
+        hotelListElement.appendChild(hotelLinkElement);
+        let hotelContainer = document.createElement("div");
+        hotelContainer.setAttribute("class", "hotel");
+        hotelLinkElement.appendChild(hotelContainer);
+        let hotelImage = "<img src=" + hotel.result_object.photo.images.medium.url + " alt='" + hotel.result_object.name + "' class='hotel-image-small'/>";
+        hotelContainer.innerHTML = hotelImage;
+        let hotelDetailsContainer = document.createElement("div");
+        hotelDetailsContainer.setAttribute("class", "hotel-name-rating");
+        hotelContainer.appendChild(hotelDetailsContainer);
+        let hotelName = hotel.result_object.name;
+        if (hotelName.split(' ').length > 3) {
+            hotelDetailsContainer.innerHTML = "<h4>" + hotel.result_object.name + "</h4>";
+            hotelDetailsContainer.innerHTML += "<div id='rating'>" + hotel.result_object.rating + " <span class='fa fa-star checked'></span></div>";
+            hotelDetailsContainer.innerHTML += "<p style='font-size: small'>" + hotel.result_object.address + "</p>";
+        }
+        else {
+            hotelDetailsContainer.innerHTML = "<h3>" + hotel.result_object.name + "</h3>";
+            hotelDetailsContainer.innerHTML += "<div id='rating'>" + hotel.result_object.rating + " <span class='fa fa-star checked'></span></div>";
+            hotelDetailsContainer.innerHTML += "<p>" + hotel.result_object.address + "</p>";
+        }
+    });
+}
 
-xhr.addEventListener("readystatechange", function () {
-	if (this.readyState === this.DONE) {
-		// console.log(JSON.parse(this.responseText).data); //array
-		JSON.parse(this.responseText).data.forEach(element => {
-			
-			if (element.result_object.category.key == 'hotel') {
-				// console.log(element.result_object);  // photo , num_review , address
-				let hotelListElement = document.getElementById('list-view');
+//This function is used to display the list of hotels in a particular city fetched from the API 
+let fetchHotelListAPI = () => {
+    let xhr = new XMLHttpRequest();
 
-				// div element - parent
-				let divElement = document.createElement("div");
-				divElement.className = 'hotel';
+    xhr.addEventListener("readystatechange", function () {
+        if (this.readyState === this.DONE) {
+            let result = JSON.parse(this.responseText).data;
+            let locations = [];
+            hotelList = result.filter(item => item.result_type == "lodging");
+            hotelList.forEach(item => {
+                locations.push([item.result_object.name + "<br><a href=\"detail.html?id=" + item.result_object.location_id + "\">Book Hotel</a>", item.result_object.latitude, item.result_object.longitude]);
+            });
+            initList(hotelList);
+            initMap(locations);
+            disableLoader();
+        }
+    });
 
-				// div element - parent
-				let childDivElement = document.createElement("div");
-				childDivElement.className = 'hotel-name-rating';
+    xhr.open("GET", API_URL + "locations/search?lang=en_US&limit=100&query=" + urlParams.get('city'));
+    xhr.setRequestHeader("x-rapidapi-host", travelAdvisorHost);
+    xhr.setRequestHeader("x-rapidapi-key", travelAdvisorKey);
 
-				// image element
-				var imgElement = document.createElement("img");
-				imgElement.setAttribute("src", element.result_object.photo.images.small.url);
-				// imgElement.setAttribute("height", element.result_object.photo.images.small.height);
-				// imgElement.setAttribute("width", element.result_object.photo.images.small.width);
+    xhr.send();
+}
 
-				imgElement.setAttribute("height", 220);
-				imgElement.setAttribute("width", 220);
-				
-				// header element
-				let headerElement = document.createElement('h3');
-				headerElement.innerHTML= element.result_object.name;
-	
-				//rating element
-				let ratingElement = document.createElement('p');
-				ratingElement.innerHTML= element.result_object.rating;
-
-				//span element
-				let spanElement = document.createElement('span');
-				spanElement.className = 'fa fa-star checked';
-
-				// address element
-				let addrElement = document.createElement('p');
-				addrElement.innerHTML= element.result_object.address;
-
-				ratingElement.appendChild(spanElement);
-				childDivElement.appendChild(headerElement);
-				childDivElement.appendChild(ratingElement);
-				childDivElement.appendChild(addrElement);
-				divElement.appendChild(imgElement);
-				divElement.appendChild(childDivElement);
-				divElement.style.cursor = 'pointer';
-				divElement.onclick = function(){  
-					// console.log(element.result_object.name+ " : " + element.result_object.location_id); 
-					window.location.href = 'detail.html?id='+element.result_object.location_id;
-				}
-				
-				hotelListElement.appendChild(divElement);
-			}
-		});
-	}
-});
-
-xhr.open("GET", "https://travel-advisor.p.rapidapi.com/locations/search?query="+city[1]);
-xhr.setRequestHeader("x-rapidapi-host", "travel-advisor.p.rapidapi.com");
-xhr.setRequestHeader("x-rapidapi-key", "305a6b78a0msh0813647c73287f8p19ef56jsn9b5d86d72ed4");
-
-xhr.send(data);
-
-
-
-
-
-
-
+fetchHotelListAPI();
